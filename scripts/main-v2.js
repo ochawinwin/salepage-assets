@@ -605,7 +605,10 @@
         if (payload.callback_url) cart.paymentSuccessCallbackUrl = payload.callback_url;
 
         const result = await FS.createCart(cart);
-        let url = result.url || '';
+        if (!result.url) {
+            throw new Error('createCart failed: ' + JSON.stringify(result));
+        }
+        let url = result.url;
         const cartNo = result.cartNo || '';
 
         if (payload.discountCode) url = url + '?discountCode=' + encodeURIComponent(payload.discountCode);
