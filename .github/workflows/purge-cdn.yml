@@ -1,0 +1,16 @@
+name: Purge jsDelivr CDN
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'scripts/**'
+
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Purge main-v2.js
+        run: |
+          curl -s "https://purge.jsdelivr.net/gh/ochawinwin/salepage-assets@master/scripts/main-v2.js"
+          echo "CDN purge requested for main-v2.js"
