@@ -605,6 +605,7 @@
         if (payload.callback_url) cart.paymentSuccessCallbackUrl = payload.callback_url;
 
         const result = await FS.createCart(cart);
+        console.log('[FS] createCart result:', result);
         if (!result.url) {
             throw new Error('createCart failed: ' + JSON.stringify(result));
         }
@@ -667,7 +668,7 @@
         function resetBtn() {
             if (submitBtn) {
                 submitBtn.disabled = false;
-                submitBtn.textContent = defaultTxt;
+                submitBtn.innerHTML = defaultTxt;
             }
         }
 
