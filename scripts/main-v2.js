@@ -107,7 +107,7 @@
 
 
     // ─────────────────────────────────────────────────────────────
-    // § Tracking Params — sessionStorage-persistent, first-touch
+    // § Tracking Params — sessionStorage-persistent, current-URL wins
     // ─────────────────────────────────────────────────────────────
 
     const TRACKING_STORAGE_KEY = 'fs_tracking_params';
@@ -120,18 +120,17 @@
 
     /**
      * Read URL query params → merge into sessionStorage.
-     * First-touch wins: existing values are NOT overwritten by new visits.
-     * Called immediately on script load (before any init() can clear localStorage).
+     * Current URL wins: sessionStorage is always replaced with current page's params.
+     * If URL has no tracking params, sessionStorage is cleared (no stale values from prior visits).
+     * Called immediately on script load (before any URL mutation can occur).
      */
     FS.captureTrackingParams = function () {
         try {
             const url = new URLSearchParams(window.location.search);
             const incoming = {};
             TRACKING_KEYS.forEach(k => { const v = url.get(k); if (v) incoming[k] = v; });
-            const existing = store.getJSON('session', TRACKING_STORAGE_KEY, {});
-            // existing wins — preserves first-touch attribution across hash navigation / URL cleanup
-            const merged = Object.assign({}, incoming, existing);
-            if (Object.keys(merged).length) store.setJSON('session', TRACKING_STORAGE_KEY, merged);
+            // Always replace — current URL is source of truth, never carry over old session values
+            store.setJSON('session', TRACKING_STORAGE_KEY, incoming);
         } catch (e) {}
     };
 
