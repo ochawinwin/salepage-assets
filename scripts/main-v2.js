@@ -119,18 +119,36 @@
     ];
 
     /**
-     * Read URL query params → merge into sessionStorage.
-     * Current URL wins: sessionStorage is always replaced with current page's params.
-     * If URL has no tracking params, sessionStorage is cleared (no stale values from prior visits).
-     * Called immediately on script load (before any URL mutation can occur).
+     * Capture URL tracking params → sessionStorage.
+     *
+     * Logic:
+     *  - URL has params  → always replace sessionStorage (current URL wins)
+     *  - URL has no params + navigation type is 'reload' or 'back_forward'
+     *                    → keep existing sessionStorage (handles in-app browser hash-click reload)
+     *  - URL has no params + navigation type is 'navigate' (fresh visit)
+     *                    → clear sessionStorage (no stale UTM from a prior visit)
+     *
+     * Called immediately on script load, before any URL mutation can occur.
      */
     FS.captureTrackingParams = function () {
         try {
             const url = new URLSearchParams(window.location.search);
             const incoming = {};
             TRACKING_KEYS.forEach(k => { const v = url.get(k); if (v) incoming[k] = v; });
-            // Always replace — current URL is source of truth, never carry over old session values
-            store.setJSON('session', TRACKING_STORAGE_KEY, incoming);
+
+            if (Object.keys(incoming).length) {
+                // URL has tracking params — always update
+                store.setJSON('session', TRACKING_STORAGE_KEY, incoming);
+            } else {
+                // URL has no tracking params — use navigation type to decide
+                const entries = performance.getEntriesByType('navigation');
+                const navType = entries.length ? entries[0].type : 'navigate';
+                if (navType === 'navigate') {
+                    // Fresh visit from external source: clear stale sessionStorage
+                    store.setJSON('session', TRACKING_STORAGE_KEY, {});
+                }
+                // 'reload' or 'back_forward': keep existing sessionStorage intact
+            }
         } catch (e) {}
     };
 
