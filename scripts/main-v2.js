@@ -7,7 +7,7 @@
  *   • LINE LIFF — landingPageType: 'YR',  email_cf_channel: 'line'
  *
  * Usage (in sale page):
- *   <script src="https://static.futureskill.co/scripts/main-v2.js"></script>
+ *   <script src="https://cdn.jsdelivr.net/gh/ochawinwin/salepage-assets@master/scripts/main-v2.js"></script>
  *   <script>FS.bootstrap(FS_CONFIG);</script>
  *
  * FS_CONFIG shape: see FS.bootstrap JSDoc below.
@@ -302,7 +302,6 @@
     FS.correctName = function (name) {
         return (name || '').replace(/^(นาย|นางสาว|น\.ส\.|ด\.ช\.|ด\.ญ\.|นาง|คุณ|เด็กชาย|เด็กหญิง)/, '').replace(/\s{2,}/g, ' ').trim();
     };
-
 
 
     // ─────────────────────────────────────────────────────────────
