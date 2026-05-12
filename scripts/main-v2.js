@@ -605,13 +605,8 @@
         if (payload.callback_url) cart.paymentSuccessCallbackUrl = payload.callback_url;
 
         const result = await FS.createCart(cart);
+        console.log('[FS] createCart result:', result);
         if (!result.url) {
-            const fallback = payload.redirect_url;
-            if (fallback) {
-                console.warn('[FS] createCart returned no URL, falling back to redirect_url:', fallback);
-                setTimeout(function () { window.location.replace(fallback); }, 1500);
-                return;
-            }
             throw new Error('createCart failed: ' + JSON.stringify(result));
         }
         let url = result.url;
