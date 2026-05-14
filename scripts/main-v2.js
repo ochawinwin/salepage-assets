@@ -140,14 +140,21 @@
                 // URL has tracking params — always update
                 store.setJSON('session', TRACKING_STORAGE_KEY, incoming);
             } else {
-                // URL has no tracking params — use navigation type to decide
+                // URL has no tracking params
+                const existing = store.getJSON('session', TRACKING_STORAGE_KEY, {});
+                if (Object.keys(existing).length) {
+                    // Already captured — keep them.
+                    // Some browsers (e.g. Comet) treat anchor-link clicks as a fresh
+                    // page navigation, reloading without the original ?utm_* params.
+                    // Clearing here would silently drop first-touch attribution.
+                    return;
+                }
+                // Nothing stored yet — only clear on a genuine fresh external visit
                 const entries = performance.getEntriesByType('navigation');
                 const navType = entries.length ? entries[0].type : 'navigate';
                 if (navType === 'navigate') {
-                    // Fresh visit from external source: clear stale sessionStorage
                     store.setJSON('session', TRACKING_STORAGE_KEY, {});
                 }
-                // 'reload' or 'back_forward': keep existing sessionStorage intact
             }
         } catch (e) {}
     };
