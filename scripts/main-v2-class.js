@@ -338,7 +338,20 @@
         const res = await fetch(cfg.WEBHOOK_FORM_ACTION, {
           method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(finalPayload)
         });
-        if (!res.ok) throw new Error('Webhook returned ' + res.status);
+        if (!res.ok) {
+          let body = '';
+          try { body = await res.text(); } catch (e) {}
+          console.error('[FS-class] webhook ' + res.status + ' — response body:', body || '(empty)');
+          if (res.status === 403) {
+            console.error('[FS-class] HTTP 403 = server rejected the request. Common causes:\n' +
+              '  1. reCAPTCHA Enterprise SITE_KEY does not allow this domain (' + window.location.hostname + ').\n' +
+              '     → Add this domain in Google Cloud → reCAPTCHA → Key settings → Domains.\n' +
+              '  2. Testing on file:// / localhost / unregistered staging — try the production domain.\n' +
+              '  3. n8n webhook not active, requires auth header, or campaign_id not provisioned.\n' +
+              '  recaptchaAction sent = "' + (cfg.recaptchaAction || 'formSubmit') + '"');
+          }
+          throw new Error('Webhook returned ' + res.status + (body ? ' — ' + body.slice(0, 200) : ''));
+        }
 
         // analytics
         FS.trackCompleteRegistration(finalPayload);
