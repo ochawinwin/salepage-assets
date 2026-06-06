@@ -389,10 +389,12 @@
         });
 
         // 2. URL-driven overrides (always take priority)
-        const urlChannelName = urlParams.get('channel_name');
-        if (urlChannelName) setValue(form, 'channel_name', urlChannelName);
-        const urlDiscount = urlParams.get('discountCode');
-        if (urlDiscount) setValue(form, 'discountCode', urlDiscount);
+        // Source from the live URL OR the persisted tracking store, so they
+        // survive in-app navigation that strips the query string — same as UTM.
+        const channelName = urlParams.get('channel_name') || tracking.channel_name;
+        if (channelName) setValue(form, 'channel_name', channelName);
+        const discountCode = urlParams.get('discountCode') || tracking.discountCode;
+        if (discountCode) setValue(form, 'discountCode', discountCode);
 
         // 3. Tracking params
         const utmFields = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
