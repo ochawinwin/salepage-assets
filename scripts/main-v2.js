@@ -1,6 +1,6 @@
 /**
  * main-v2.js — FutureSkill Sale Page Shared Library
- * Version: 2.0.1
+ * Version: 2.0.2
  *
  * Supports two sale page types via FS.bootstrap(config):
  *   • Linkpay  — landingPageType: 'SGC', email_cf_channel: ''
@@ -21,7 +21,7 @@
     // ─────────────────────────────────────────────────────────────
     const FS = {};
     window.FS = FS;
-    FS.version = '2.0.1';
+    FS.version = '2.0.2';
 
     // Stored by bootstrap so the dataLayer affiliate listener can access it
     FS._cfg = null;
@@ -441,11 +441,17 @@
         const sel = form.querySelector('select[name="package"]');
         if (!sel) return;
 
+        // A discountCode from the URL / persisted tracking is an explicit override
+        // and must win over the package's default discount. Resolve it once.
+        const urlParams = new URLSearchParams(window.location.search);
+        const tracking = FS.getStoredTrackingParams();
+        const overrideDiscount = urlParams.get('discountCode') || tracking.discountCode || '';
+
         function applyPackage(val) {
             const parts = (val || '').split('/');
             setValue(form, 'course', parts[0] || '');
             setValue(form, 'price', parts[1] || '');
-            setValue(form, 'discountCode', parts[2] || '');
+            setValue(form, 'discountCode', overrideDiscount || parts[2] || '');
         }
 
         // Apply default from <input name="defaultPackage"> if present
