@@ -358,14 +358,22 @@
     // § Form Hydration
     // ─────────────────────────────────────────────────────────────
 
+    // Set both the .value property (what FormData/scripts read) and the value
+    // attribute (what shows in DevTools' Elements panel) so hidden fields are
+    // inspectable — a programmatic el.value alone never updates the HTML attribute.
+    function writeField(el, value) {
+        el.value = value || '';
+        el.setAttribute('value', value || '');
+    }
+
     function setIfEmpty(form, name, value) {
         const el = FS.findField(form, name);
-        if (el && !el.value) el.value = value || '';
+        if (el && !el.value) writeField(el, value);
     }
 
     function setValue(form, name, value) {
         const el = FS.findField(form, name);
-        if (el) el.value = value || '';
+        if (el) writeField(el, value);
     }
 
     /**
