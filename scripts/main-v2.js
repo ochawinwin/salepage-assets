@@ -77,10 +77,12 @@
 
     function buildPx(PXID) {
         const l = window.location;
+        const test_event_code = store.get('session', 'test_event_code', undefined);
         return JSON.stringify({
             px: (PXID || '').trim(),
             agent: navigator.userAgent,
-            landing: l.protocol + '//' + l.host + l.pathname
+            landing: l.protocol + '//' + l.host + l.pathname,
+            test_event_code: test_event_code || undefined,
         });
     }
 
@@ -115,7 +117,7 @@
     const TRACKING_KEYS = [
         'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term',
         'fbclid', 'gclid', 'msclkid', 'ttclid',
-        'ref', 'aff', 'channel_name', 'discountCode'
+        'ref', 'aff', 'channel_name', 'discountCode', 'test_event_code'
     ];
 
     /**
@@ -538,6 +540,7 @@
 
         // window.conversion (used by GTM + affiliate listener)
         window.conversion = {
+            deal_id:      payload.deal_id,
             email:        payload.email,
             phone:        payload.phone,
             fullname:     payload.fullname,
@@ -548,7 +551,7 @@
             utm_source:   payload.utm_source,
             utm_medium:   payload.utm_medium,
             utm_campaign: payload.utm_campaign,
-            utm_content:  payload.utm_content
+            utm_content:  payload.utm_content,
         };
 
         window.dataLayer = window.dataLayer || [];
