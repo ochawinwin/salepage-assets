@@ -1,6 +1,6 @@
 /**
  * main-v2.js — FutureSkill Sale Page Shared Library
- * Version: 2.0.2
+ * Version: 2.0.3
  *
  * Supports two sale page types via FS.bootstrap(config):
  *   • Linkpay  — landingPageType: 'SGC', email_cf_channel: ''
@@ -21,7 +21,7 @@
     // ─────────────────────────────────────────────────────────────
     const FS = {};
     window.FS = FS;
-    FS.version = '2.0.2';
+    FS.version = '2.0.3';
 
     // Stored by bootstrap so the dataLayer affiliate listener can access it
     FS._cfg = null;
