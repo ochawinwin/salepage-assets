@@ -78,7 +78,7 @@
     function buildPx(PXID) {
         const l = window.location;
         const tracking = FS.getStoredTrackingParams();
-        const urlParams = new URLSearchParams(window.location.search);
+        const urlParams = new URLSearchParams(l.search);
         const test_event_code = urlParams.get('test_event_code') || tracking?.test_event_code;
         return JSON.stringify({
             px: (PXID || '').trim(),
@@ -501,7 +501,8 @@
         });
 
         // Layer 4: Runtime values (only add if genuinely missing)
-        if (!payload.px)          payload.px = buildPx(cfg.PXID);
+        // px: it must be regenerated if test_event_code is present
+        if (!payload.px || !!tracking['test_event_code']) payload.px = buildPx(cfg.PXID);
         if (!payload.deal_id)     payload.deal_id = genDealId();
         if (!payload.landing_url) payload.landing_url = window.location.href;
 
