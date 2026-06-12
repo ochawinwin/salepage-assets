@@ -77,12 +77,13 @@
 
     function buildPx(PXID) {
         const l = window.location;
-        const test_event_code = store.get('session', 'test_event_code', undefined);
+        const tracking = FS.getStoredTrackingParams();
+        const test_event_code = tracking?.test_event_code || undefined;
         return JSON.stringify({
             px: (PXID || '').trim(),
             agent: navigator.userAgent,
             landing: l.protocol + '//' + l.host + l.pathname,
-            test_event_code: test_event_code || undefined,
+            test_event_code: test_event_code,
         });
     }
 
