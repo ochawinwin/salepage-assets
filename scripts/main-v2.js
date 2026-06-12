@@ -78,12 +78,13 @@
     function buildPx(PXID) {
         const l = window.location;
         const tracking = FS.getStoredTrackingParams();
-        const test_event_code = tracking?.test_event_code || undefined;
+        const urlParams = new URLSearchParams(window.location.search);
+        const test_event_code = urlParams.get('test_event_code') || tracking?.test_event_code;
         return JSON.stringify({
             px: (PXID || '').trim(),
             agent: navigator.userAgent,
             landing: l.protocol + '//' + l.host + l.pathname,
-            test_event_code: test_event_code,
+            test_event_code: test_event_code || undefined,
         });
     }
 
