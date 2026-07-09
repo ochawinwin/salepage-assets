@@ -561,7 +561,37 @@
         window.dataLayer.push({ event: 'FSCompleteRegistration', conversion: window.conversion });
     };
 
-    FS.trackPurchaseSuccess = function (payload, cfg) {
+    function normalizePurchase(purchase) {
+        if (!purchase || typeof purchase !== 'object' || Array.isArray(purchase)) return null;
+
+        const normalized = {
+            currency: typeof purchase.currency === 'string' ? purchase.currency : 'THB',
+            value: Number(purchase.value) || 0,
+            content_type: typeof purchase.content_type === 'string' ? purchase.content_type : 'product',
+        };
+
+        if (Array.isArray(purchase.content_ids)) {
+            normalized.content_ids = purchase.content_ids
+                .filter(function (id) { return typeof id === 'string' || typeof id === 'number'; })
+                .map(String);
+        }
+
+        if (Array.isArray(purchase.contents)) {
+            normalized.contents = purchase.contents
+                .filter(function (item) { return item && typeof item === 'object'; })
+                .map(function (item) {
+                    return {
+                        id: item.id != null ? String(item.id) : '',
+                        quantity: Number(item.quantity) || 1,
+                    };
+                })
+                .filter(function (item) { return item.id; });
+        }
+
+        return normalized;
+    }
+
+    FS.trackPurchaseSuccess = function (cfg) {
         function status (response) {
             if (response.status >= 200 && response.status < 300) {
                 return Promise.resolve(response)
@@ -588,33 +618,51 @@
             //     "content_ids":[SKU],
             //     "contents":[{"id":SKU,"quantity":QUANTITY}]
             // }
-            fetch('https://futureskill.app.n8n.cloud/webhook/event/order?orderNo='+orderNo)
+            fetch('https://futureskill.app.n8n.cloud/webhook/event/order?orderNo=' + encodeURIComponent(orderNo))
             .then(status)
             .then(json)
             .then(data => {
-                // Successfully get purchase data from webhook
-                if(data.purchase){
-                    // Facebook Pixel
-                    if(typeof fbq !== 'undefined'){
-                        fbq('track', 'Purchase', data.purchase, {eventID: eventID});
-                    }
-                    // TikTok Pixel
-                    if (typeof window.ttq !== 'undefined') {
-                        const ttqContents = data.purchase.contents.map(content => ({
-                            content_id: content.id,
-                            quantity: content.quantity,
-                            content_type: data.purchase.content_type,
-                        }));
+                const purchase = normalizePurchase(data && data.purchase);
+                if (!purchase) {
+                    console.warn('[FS] webhook response missing or invalid purchase object', data && data.purchase);
+                    return;
+                }
+
+                // Facebook Pixel
+                if (typeof fbq !== 'undefined') {
+                    fbq('track', 'Purchase', purchase, { eventID: eventID });
+                }
+                // TikTok Pixel
+                if (typeof window.ttq !== 'undefined') {
+                    const contents = purchase.contents;
+                    if (!Array.isArray(contents) || !contents.length) {
+                        console.warn('[FS] webhook response missing or invalid purchase.contents for TikTok', contents);
+                    } else {
+                        const ttqContents = contents.map(function (content) {
+                            return {
+                                content_id: content.id,
+                                quantity: content.quantity,
+                                content_type: purchase.content_type,
+                            };
+                        });
                         window.ttq.track('Purchase', {
                             contents: ttqContents,
-                            value: data.purchase.value,
-                            currency: data.purchase.currency
+                            value: purchase.value,
+                            currency: purchase.currency
                         });
                     }
-                    // Push to DataLayer for GTM
-                    window.dataLayer = window.dataLayer || [];
-                    window.dataLayer.push({ 'event': 'Purchase', ...data.purchase, orderNo: orderNo });
                 }
+                // Push to DataLayer for GTM
+                window.dataLayer = window.dataLayer || [];
+                window.dataLayer.push({
+                    event: 'Purchase',
+                    orderNo: orderNo,
+                    currency: purchase.currency,
+                    value: purchase.value,
+                    content_type: purchase.content_type,
+                    content_ids: purchase.content_ids || [],
+                    contents: purchase.contents || [],
+                });
             }).catch(error => {
                 console.error('Request failed', error);
             });
