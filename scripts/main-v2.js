@@ -852,6 +852,7 @@
 
     /**
      * FS.bootstrap(cfg)
+     * or FS.bootstrap(cfg, page="purchase_success")
      *
      * cfg = {
      *   // Required
@@ -879,8 +880,15 @@
      *   onSubmitSuccess: (payload) => {},
      *   onSubmitError:   (err)     => 'custom error message or null',
      * }
+     * 
+     * page = "main" | "purchase_success"
+     * page = "main" is default for landing page
+     * if page = "main", then FS.handleSubmit will be called
+     * page = "purchase_success" is for purchase success page
+     * if page = "purchase_success", then FS.trackPurchaseSuccess will be called
+     * 
      */
-    FS.bootstrap = function (cfg) {
+    FS.bootstrap = function (cfg, page="main") {
         if (!cfg) { console.error('[FS] FS.bootstrap(config) requires a config object'); return; }
 
         FS._cfg = cfg;  // store for affiliate listener
@@ -899,9 +907,14 @@
 
         // 4. Form hydration + submit handler (needs DOM)
         function run() {
-            FS.hydrateHiddenFields(cfg);
-            FS.attachPackageSelectSync(cfg);
-            FS.handleSubmit(cfg);
+            if (page === 'purchase_success') {
+                FS.trackPurchaseSuccess(cfg);
+            }
+            else {
+                FS.hydrateHiddenFields(cfg);
+                FS.attachPackageSelectSync(cfg);
+                FS.handleSubmit(cfg);
+            }
         }
 
         if (document.readyState === 'loading') {
