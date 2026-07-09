@@ -561,6 +561,65 @@
         window.dataLayer.push({ event: 'FSCompleteRegistration', conversion: window.conversion });
     };
 
+    FS.trackPurchaseSuccess = function (payload, cfg) {
+        function status (response) {
+            if (response.status >= 200 && response.status < 300) {
+                return Promise.resolve(response)
+            } else {
+                return Promise.reject(new Error(response.statusText))
+            }
+        }
+        function json (response) {
+            return response.json()
+        }
+    
+        var url = new URL(window.location.href);
+        var orderNo = url.searchParams.get("orderNo");
+        if(orderNo){
+            var eventID = 'PC_'+orderNo;
+            //get purchase data from webhook
+            // response: 
+            // {
+            // "px":PIXEL FROM ORDER,
+            // "purchase":{
+            //     "currency":"THB",
+            //     "value":TOTAL AMOUNT,
+            //     "content_type":"product",
+            //     "content_ids":[SKU],
+            //     "contents":[{"id":SKU,"quantity":QUANTITY}]
+            // }
+            fetch('https://futureskill.app.n8n.cloud/webhook/event/order?orderNo='+orderNo)
+            .then(status)
+            .then(json)
+            .then(data => {
+                // Successfully get purchase data from webhook
+                if(data.purchase){
+                    // Facebook Pixel
+                    if(typeof fbq !== 'undefined'){
+                        fbq('track', 'Purchase', data.purchase, {eventID: eventID});
+                    }
+                    // TikTok Pixel
+                    if (typeof window.ttq !== 'undefined') {
+                        const ttqContents = data.purchase.contents.map(content => ({
+                            content_id: content.id,
+                            quantity: content.quantity,
+                            content_type: data.purchase.content_type,
+                        }));
+                        window.ttq.track('Purchase', {
+                            contents: ttqContents,
+                            value: data.purchase.value,
+                            currency: data.purchase.currency
+                        });
+                    }
+                    // Push to DataLayer for GTM
+                    window.dataLayer = window.dataLayer || [];
+                    window.dataLayer.push({ 'event': 'Purchase', ...data.purchase, orderNo: orderNo });
+                }
+            }).catch(error => {
+                console.error('Request failed', error);
+            });
+        }
+    };
 
     // ─────────────────────────────────────────────────────────────
     // § Payment Dispatcher (Linkpay vs LINE LIFF)
