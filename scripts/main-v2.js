@@ -630,7 +630,7 @@
 
                 // Facebook Pixel
                 if (typeof fbq !== 'undefined') {
-                    fbq('track', 'Purchase', purchase, { eventID: eventID });
+                    fbq('track', 'Purchase', ...purchase, { eventID: eventID });
                 }
                 // TikTok Pixel
                 if (typeof window.ttq !== 'undefined') {
