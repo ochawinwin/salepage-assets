@@ -900,7 +900,7 @@
 
     /**
      * FS.bootstrap(cfg)
-     * or FS.bootstrap(cfg, page="purchase_success")
+     * or FS.bootstrap(cfg, "purchase_success")
      *
      * cfg = {
      *   // Required
