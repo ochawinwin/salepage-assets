@@ -711,6 +711,15 @@
 
         const cartItems = courses.map(function (sku) { return { product: sku, quantity: 1 }; });
 
+        // ** Custom Fields **
+        // customField1: deal_id
+        // customField2: px
+        // customField3: course|email
+        // customField4: marketing settings
+        const special = {};
+        if (payload.free_sku) special.free_sku = payload.free_sku;
+        if (payload.gift_item) special.gift_item = payload.gift_item;
+
         const cart = {
             cartItems,
             userdata: {
@@ -731,7 +740,10 @@
                 utm_content:  params.utm_content  || '',
                 customField1: payload.deal_id,
                 customField2: payload.px,
-                customField3: (payload.course || '') + '|' + (payload.email || '')
+                customField3: (payload.course || '') + '|' + (payload.email || ''),
+                ...(Object.keys(special).length
+                    ? { customField4: JSON.stringify({ special }) }
+                    : {}),
             },
             paymentSuccessRedirectUrl: payload.redirect_url || ''
         };
@@ -878,7 +890,8 @@
                 const localFields = [
                     'email','phone','fullname','price','course','mkter','campaign',
                     'deal_id','px','redirect_url','callback_url','discountCode',
-                    'type','orderbump','orderbumpdetail','bonusdetail','landing_url'
+                    'type','orderbump','orderbumpdetail','bonusdetail','landing_url',
+                    'free_sku','gift_item',
                 ];
                 localFields.forEach(function (k) { store.set('local', k, finalPayload[k] || ''); });
 
@@ -1004,7 +1017,8 @@
             const keys = [
                 'email','phone','fullname','price','course','mkter','campaign',
                 'deal_id','px','redirect_url','callback_url','discountCode',
-                'type','orderbump','orderbumpdetail','bonusdetail','landing_url'
+                'type','orderbump','orderbumpdetail','bonusdetail','landing_url',
+                'free_sku','gift_item',
             ];
             const payload = {};
             keys.forEach(function (k) { payload[k] = store.get('local', k, ''); });
