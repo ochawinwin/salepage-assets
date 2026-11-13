@@ -33,6 +33,7 @@ const FS_CONFIG = {
     SITE_KEY:           '<recaptcha-v3-site-key>',
     WEBHOOK_FORM_ACTION:'<n8n-webhook-url>',
     landingPageType:    'SGC',   // 'SGC' = Linkpay | 'YR' = LINE LIFF
+    env:                'prod',  // 'prod' | 'uat' | 'dev' — pay-api used for cart creation
     hiddenFieldConfig: {
         mkter: '',
         campaign_id: '',
@@ -87,6 +88,7 @@ const FS_CONFIG = {
 | `WEBHOOK_FORM_ACTION` | ✅ | n8n webhook URL |
 | `landingPageType` | ✅ | `'SGC'` or `'YR'` |
 | `hiddenFieldConfig` | ✅ | Static values for all hidden fields |
+| `env` | — | pay-api environment for cart creation: `'prod'` (default), `'uat'`, or `'dev'` |
 | `formSelector` | — | Default: `#leadForm` |
 | `submitButtonSelector` | — | Default: `#submitBtn` |
 | `errorBoxSelector` | — | DOM element to show errors. `null` → `alert()` |

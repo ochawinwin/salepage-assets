@@ -677,12 +677,26 @@
         return !!(cfg && cfg.hiddenFieldConfig && cfg.hiddenFieldConfig.email_cf_channel === 'line');
     };
 
-    FS.createCart = async function (cart) {
-        return fetchPost(
-            'https://pay-api.futureskill.co/api/cart/create',
-            cart,
-            { Authorization: 'Basic ODIzMjAyMzI4NzczNjEwNzA6cWdsTzA1YVZkdVl2RHF5eVdhQ2w=' }
-        );
+    // Selected by cfg.env; defaults to 'prod'.
+    const PAY_API = {
+        prod: {
+            url:  'https://pay-api.futureskill.co/api/cart/create',
+            auth: 'Basic ODIzMjAyMzI4NzczNjEwNzA6cWdsTzA1YVZkdVl2RHF5eVdhQ2w='
+        },
+        uat: {
+            url:  'https://uat-pay-api.futureskill.live/api/cart/create',
+            auth: 'Basic MjUwNjY2MDU4NTY5MDQ1ODg6RHp0VzVNWm5VUjBEY1pVbjBjWFc='
+        },
+        dev: {
+            url:  'https://dev-pay-api.futureskill.live/api/cart/create',
+            auth: 'Basic MjUwNjY2MDU4NTY5MDQ1ODg6RHp0VzVNWm5VUjBEY1pVbjBjWFc='
+        }
+    };
+
+    FS.createCart = async function (cart, env) {
+        const api = PAY_API[env || 'prod'];
+        if (!api) throw new Error("[FS] Unknown env: " + env + " (expected 'prod' | 'uat' | 'dev')");
+        return fetchPost(api.url, cart, { Authorization: api.auth });
     };
 
     /**
@@ -752,7 +766,7 @@
         if (payload.type) cart.userdata.payload = { userId: undefined, redeem: true, type: payload.type };
         if (payload.callback_url) cart.paymentSuccessCallbackUrl = payload.callback_url;
 
-        const result = await FS.createCart(cart);
+        const result = await FS.createCart(cart, cfg && cfg.env);
         console.log('[FS] createCart result:', result);
         if (!result.url) {
             throw new Error('createCart failed: ' + JSON.stringify(result));
@@ -926,6 +940,7 @@
      *   hiddenFieldConfig:     { mkter, campaign, price, course, redirect_url, ... },
      *
      *   // Optional
+     *   env: 'prod',         // 'prod' | 'uat' | 'dev' — pay-api used by createCart (default 'prod')
      *   formSelector:              '#leadForm',    // default: '#leadForm, #lead-form, [data-fs-form]'
      *   submitButtonSelector:      '#submitBtn',   // default: first button[type=submit] in form
      *   errorBoxSelector:          '#formError',   // null → fall back to alert()
